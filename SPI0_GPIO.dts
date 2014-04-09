@@ -1,0 +1,99 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2014
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "ti,beaglebone-black";
+
+    /* identification */
+    part-number = "BB-SPI0-OLED";
+
+    /* version */
+    version = "00A0";
+
+    /* state the resources this cape uses */
+    exclusive-use =
+        /* the pin header uses */
+        "P9.18", /* SIMO SPI0_D1 */
+        "P9.22", /* SCLK SPI0 */
+        "P9.23", /* CS GPIO */
+        "P9.24", /* RES GPIO */
+        "P9.26", /* DC GPIO */
+        "P8.17", /* BTN 1 */
+        "P8.14", /* BTN 2 */
+        "spi1";
+
+    fragment@0 {
+        target = <&am33xx_pinmux>;
+        __overlay__ {
+            pinctrl_spi0: pinctrl_spi0_pins {
+                pinctrl-single,pins = <
+                    0x158 0x30    /* P9_18 = spi0_d1    , OUTPUT_PULLUP | MODE0 = 0b0110000 */
+                    0x150 0x30    /* P9_22 = spi0_sclk  , OUTPUT_PULLUP | MODE0 = 0b0110000 */
+                    
+                    0x044 0x17    /* P9_23 = gpio1[17]  , OUTPUT_PULLUP | MODE7 = 0b0010111 */
+                    0x184 0x07    /* P9_24 = gpio0[15]  , OUTPUT_PULLDOWN | MODE7 = 0b0000111 */
+                    0x180 0x17    /* P9_26 = gpio0[14]  , OUTPUT_PULLUP | MODE7 = 0b0010111 */
+                    
+                    0x02C 0x27    /* P8_17 = gpio0[27]  , INPUT_PULLDOWN | MODE7 = 0b0100111 */
+                    0x028 0x27    /* P8_14 = gpio0[26]  , INPUT_PULLDOWN | MODE7 = 0b0100111 */
+                    
+                >;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&spi0>;
+        __overlay__ {
+            #address-cells     = <1>;
+            #size-cells     = <0>;
+            status            = "okay";
+            pinctrl-names    = "default";
+            pinctrl-0        = <&pinctrl_spi0>;
+
+            spi0_0{
+                #address-cells       = <1>;
+                #size-cells       = <0>;
+                compatible           = "spidev";
+                reg               = <0>;
+                spi-max-frequency = <16000000>;
+                spi-cpha;
+                // Mode 1 (CPOL = 0, CPHA = 1) ref pg 4537
+            };
+            spi0_1{
+                #address-cells       = <1>;
+                #size-cells       = <0>;
+                compatible           = "spidev";
+                reg               = <1>;
+                spi-max-frequency = <16000000>;
+                spi-cpha;
+                // Mode 1 (CPOL = 0, CPHA = 1) ref pg 4537
+            };
+        };
+    };
+};
+
